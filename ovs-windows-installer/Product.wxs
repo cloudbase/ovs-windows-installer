@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Product Id="{0DF60ED5-6C22-49A0-913E-77412D35C400}" Name="Open vSwitch for Hyper-V" Language="1033" Version="1.0.0.0"
+           Manufacturer="Cloudbase Solutions Srl" UpgradeCode="da802b12-433d-4742-a7ae-783aa0c48222">
+    <Package InstallerVersion="405" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" Platform="x64" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="mszip" />
+
+    <Feature Id="OpenvSwitchCLI" Title="Open vSwitch CLI" Level="1" Absent="disallow" InstallDefault="local" TypicalDefault="install" AllowAdvertise="no"
+             Description="Installs the Open vSwitch command line tools."
+             ConfigurableDirectory="INSTALLDIR" Display="expand">
+      <ComponentGroupRef Id="BinariesComponentGroup" />
+      <ComponentGroupRef Id="SymbolsComponentGroup" />
+      <ComponentRef Id="OpenvSwitchCLIPath" />
+
+      <Feature Id="VC120Redist" Title="Visual C++ 12.0 Runtime" AllowAdvertise="no" Display="hidden" Level="1"
+               Absent="disallow" InstallDefault="followParent" TypicalDefault="install">
+        <MergeRef Id="VC120Redist" />
+      </Feature>
+    </Feature>
+
+    <Feature Id="OpenvSwitchDriver" Title="Open vSwitch Hyper-V driver" Level="1" Absent="allow" InstallDefault="local" TypicalDefault="install" AllowAdvertise="no"
+             Description="Installs the Open vSwitch Hyper-V switch extension driver." Display="expand">
+      <ComponentRef Id="OpenvSwitchDriver" />
+      <ComponentRef Id="ConfDir" />
+      <ComponentRef Id="LogsDir" />
+      <ComponentRef Id="AppDataDir" />
+      <ComponentRef Id="OvsdbServerService" />
+      <ComponentRef Id="OvsVSwitchdService" />
+      <ComponentRef Id="OpenvSwitchPSModule" />
+    </Feature>
+
+    <UIRef Id="MyWixUI_FeatureTree" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+
+    <WixVariable Id="WixUIBannerBmp" Value="images\bannrbmp.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="images\dlgbmp.bmp" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <Property Id="OVSDB_SERVER_PORT" Value="5559" />
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallOpenVSwitchDriver_Prop" After="CostFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="InstallOpenVSwitchDriver" Before="ChangeOvsVSwitchdService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+
+      <Custom Action="UninstallOpenVSwitchDriver_Prop" After="CostFinalize"><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
+      <Custom Action="UninstallOpenVSwitchDriver" Before="InstallFinalize" ><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
+
+      <Custom Action="GenerateConfDB_Prop" After="CostFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="GenerateConfDB" Before="ChangeOvsdbServerService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+
+      <Custom Action="StartOvsdbServerService_Prop" After="CostFinalize"><![CDATA[NOT Installed AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="RestartOvsdbServerService_Prop" After="CostFinalize"><![CDATA[Installed AND REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="ChangeOvsdbServerService" Before="ChangeOvsVSwitchdService"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+
+      <Custom Action="StartOvsVSwitchdService_Prop" After="CostFinalize"><![CDATA[NOT Installed AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="RestartOvsVSwitchdService_Prop" After="CostFinalize"><![CDATA[Installed AND REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="ChangeOvsVSwitchdService" Before="InstallFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+    </InstallExecuteSequence>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="CompanyFolder" Name="Cloudbase Solutions">
+          <Directory Id="INSTALLDIR" Name="Open vSwitch" />
+        </Directory>
+      </Directory>
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="APPDATADIR" Name="openvswitch">
+          <Component Id="AppDataDir" Guid="{9FAA3CD1-2234-4D6E-A974-D3D48A40773F}">
+            <CreateFolder />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="BINARIESDIR" Name="bin" />
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="SYMBOLSDIR" Name="symbols" />
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="DRIVERDIR" Name="driver" />
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="LOGSDIR" Name="logs">
+        <Component Id="LogsDir" Guid="{CA78C399-6E2C-4D39-88FB-1F58AC9DF8AC}">
+          <CreateFolder />
+        </Component>
+      </Directory>
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="CONFDIR" Name="conf" />
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Directory Id="System64Folder" Name="System64Folder">
+        <Directory Id="WindowsPowerShell" Name="WindowsPowerShell">
+          <Directory Id="v1.0" Name="v1.0">
+            <Directory Id="Modules" Name="Modules">
+              <Directory Id="OVSPSMODULEDIR" Name="OVS" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+
+    <Component Id="OpenvSwitchPSModule" Directory="OVSPSMODULEDIR" Guid="{91819E0F-36F9-44C1-BCA3-973AE991E386}" Win64="yes">
+      <File Id="OVS.psm1" Source="OVS.psm1" Checksum="yes" KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="OpenvSwitchCLIPath" Guid="{4FCCA9D3-77BE-4283-815E-E3E63D4BF763}">
+        <Environment Id="PATH" Name="PATH" Value="[BINARIESDIR]" Permanent="no" Part="last" Action="set" System="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <Component Id="ConfDir" Directory="CONFDIR" Guid="{6DB7BC99-FF12-41E2-9EAA-A98A579BE27B}">
+      <File Id="vswitch.ovsschema" Source="Services\vswitch.ovsschema" Checksum="yes" KeyPath="yes" />
+      <RemoveFile Id="removeConfDb" Name="conf.db" On="install" />
+      <RemoveFile Id="removeConfDbLock" Name=".conf.db.~lock~" On="install" />
+    </Component>
+
+    <Component Id="OvsdbServerService" Directory="BINARIESDIR" Guid="{280201D5-35E7-45D6-83B9-293F1A4F7F0E}">
+      <File Id="ovsdbserver.exe" Source="Services\ovsdb-server.exe" Checksum="yes" />
+      <File Id="ovsdbserverservice.exe" Source="Services\ovsdb-server-service.exe" KeyPath="yes" Checksum="yes" />
+      <ServiceInstall
+                Arguments='ovsdb-server "[BINARIESDIR]ovsdb-server.exe" --log-file="[LOGSDIR]ovsdb-server.log" --remote=punix:db.sock "[CONFDIR]conf.db"'
+                Id="OvsdbServerServiceInstaller"
+                Type="ownProcess"
+                Vital="yes"
+                Name="ovsdb-server"
+                DisplayName="Open vSwitch DB Service"
+                Description="Open vSwitch DB Service"
+                Start="auto"
+                Account="LocalSystem"
+                ErrorControl="ignore"
+                Interactive="no">
+        <ServiceDependency Id="vmms" />
+      </ServiceInstall>
+      <!-- Start service at the end of the setup, not here -->
+      <ServiceControl
+        Id="OvsdbServerServiceStartService"
+        Stop="both"
+        Remove="uninstall"
+        Name="ovsdb-server"
+        Wait="yes" />
+      <util:ServiceConfig
+        ServiceName="ovsdb-server"
+        FirstFailureActionType="restart"
+        SecondFailureActionType="restart"
+        ThirdFailureActionType="restart"
+        RestartServiceDelayInSeconds="1" />
+    </Component>
+
+    <Component Id="OvsVSwitchdService" Directory="BINARIESDIR" Guid="{A2ED5531-B2D7-4CD3-8ADE-B525A8BEB957}">
+      <File Id="ovsvswitchd.exe" Source="Services\ovs-vswitchd.exe" Checksum="yes" />
+      <File Id="ovsvswitchdservice.exe" Source="Services\ovs-vswitchd-service.exe" KeyPath="yes" Checksum="yes" />
+      <ServiceInstall
+                Arguments='ovs-vswitchd "[BINARIESDIR]ovs-vswitchd.exe"'
+                Id="OvsVSwitchdServiceServiceInstaller"
+                Type="ownProcess"
+                Vital="yes"
+                Name="ovs-vswitchd"
+                DisplayName="Open vSwitch Service"
+                Description="Open vSwitch Service"
+                Start="auto"
+                Account="LocalSystem"
+                ErrorControl="ignore"
+                Interactive="no">
+        <ServiceDependency Id="ovsdb-server" />
+      </ServiceInstall>
+      <!-- Start service at the end of the setup, not here -->
+      <ServiceControl
+        Id="OvsVSwitchdServiceServiceStartService"
+        Stop="both"
+        Remove="uninstall"
+        Name="ovs-vswitchd"
+        Wait="yes" />
+      <util:ServiceConfig
+        ServiceName="ovs-vswitchd"
+        FirstFailureActionType="restart"
+        SecondFailureActionType="restart"
+        ThirdFailureActionType="restart"
+        RestartServiceDelayInSeconds="1" />
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="DRIVERDIR">
+      <Component Id='OpenvSwitchDriver' Guid='{7A1E2446-8196-4738-8362-5CFD55896A7A}'>
+        <File Id='ovsext.sys' Name='ovsext.sys' DiskId='1' Source='Driver\ovsext.sys' Checksum='yes' KeyPath='yes' />
+        <File Id='ovsext.inf' Name='ovsext.inf' DiskId='1' Source='Driver\ovsext.inf' Checksum='yes' />
+        <File Id='ovsext.cat' Name='ovsext.cat' DiskId='1' Source='Driver\ovsext.cat' Checksum='yes' />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Merge Id="VC120Redist" SourceFile="Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0" />
+    </DirectoryRef>
+  </Fragment>
+
+</Wix>

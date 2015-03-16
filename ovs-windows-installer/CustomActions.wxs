@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Binary Id="OVSActions" SourceFile="Actions\OVSActions.js" />
+
+    <CustomAction Id="GenerateConfDB_Prop" Property="GenerateConfDB"
+                  Value='"[BINARIESDIR]ovsdb-tool.exe" create "[CONFDIR]conf.db" "[CONFDIR]vswitch.ovsschema"|0|ovsdb-tool failed to create the conf.db database'
+                  Execute="immediate" />
+    <CustomAction Id="GenerateConfDB"
+              BinaryKey="OVSActions"
+              JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
+
+    <CustomAction Id="InstallOpenVSwitchDriver_Prop" Property="InstallOpenVSwitchDriver"
+                  Value='"[WindowsFolder]Sysnative\netcfg.exe" -l "[DRIVERDIR]\ovsext.inf" -c s -i ovsext|0|netcfg failed to install the Open vSwitch Hyper-V switch extension'
+                  Execute="immediate" />
+    <CustomAction Id="InstallOpenVSwitchDriver"
+              BinaryKey="OVSActions"
+              JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
+
+    <CustomAction Id="UninstallOpenVSwitchDriver_Prop" Property="UninstallOpenVSwitchDriver"
+                  Value='"[WindowsFolder]Sysnative\netcfg.exe" -u ovsext|0|netcfg failed to uninstall the Open vSwitch Hyper-V switch extension'
+                  Execute="immediate" />
+    <CustomAction Id="UninstallOpenVSwitchDriver"
+              BinaryKey="OVSActions"
+              JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
+
+    <CustomAction Id="RestartOvsdbServerService_Prop" Return="check" Property="ChangeOvsdbServerService"
+                  Value="ovsdb-server||Restart" />
+    <CustomAction Id="StartOvsdbServerService_Prop" Return="check" Property="ChangeOvsdbServerService"
+                  Value="ovsdb-server||Start" />
+    <CustomAction Id="ChangeOvsdbServerService"
+              BinaryKey="OVSActions"
+              JScriptCall="changeServiceAction" Execute="deferred" Return="check" Impersonate="no" />
+
+    <CustomAction Id="RestartOvsVSwitchdService_Prop" Return="check" Property="ChangeOvsVSwitchdService"
+                  Value="ovs-vswitchd||Restart" />
+    <CustomAction Id="StartOvsVSwitchdService_Prop" Return="check" Property="ChangeOvsVSwitchdService"
+                  Value="ovs-vswitchd||Start" />
+    <CustomAction Id="ChangeOvsVSwitchdService"
+              BinaryKey="OVSActions"
+              JScriptCall="changeServiceAction" Execute="deferred" Return="check" Impersonate="no" />
+  </Fragment>
+</Wix>
