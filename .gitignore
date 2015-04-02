@@ -6,6 +6,14 @@
 *.user
 *.sln.docstates
 
+ovs-windows-installer/Binaries.wxs
+ovs-windows-installer/Symbols.wxs
+ovs-windows-installer/Binaries/*
+ovs-windows-installer/Services/*
+ovs-windows-installer/Driver/*
+ovs-windows-installer/Redist/*
+ovs-windows-installer/Symbols/*
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -15,9 +23,6 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
-
-openvswitch-hyperv-installer/Binaries.wxs
-openvswitch-hyperv-installer/Symbols.wxs
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

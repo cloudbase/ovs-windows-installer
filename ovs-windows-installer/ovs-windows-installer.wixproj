@@ -35,27 +35,19 @@
   <ItemGroup>
     <Folder Include="Binaries\" />
     <Folder Include="Dialogs\" />
-    <Folder Include="Driver\" />
     <Folder Include="images\" />
     <Folder Include="Actions" />
-    <Folder Include="Symbols" />
+    <Folder Include="Driver" />
     <Folder Include="Services" />
+    <Folder Include="Redist" />
+    <Folder Include="Symbols" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Actions\OVSActions.js" />
-    <Content Include="Driver\openvswitch.cat" />
-    <Content Include="Driver\openvswitch.inf" />
-    <Content Include="Driver\openvswitch.sys" />
     <Content Include="images\bannrbmp.bmp" />
     <Content Include="images\dlgbmp.bmp" />
     <Content Include="License.rtf" />
-    <Content Include="Microsoft_VC120_CRT_x86.msm" />
-    <Content Include="OVS.psm1" />
-    <Content Include="Services\ovs-vswitchd-service.exe" />
-    <Content Include="Services\ovs-vswitchd.exe" />
-    <Content Include="Services\ovsdb-server-service.exe" />
-    <Content Include="Services\ovsdb-server.exe" />
-    <Content Include="Services\vswitch.ovsschema" />
+    <Content Include="Redist\Microsoft_VC120_CRT_x86.msm" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUtilExtension">
