@@ -24,19 +24,18 @@ Microsoft_VC120_CRT_x86.msm
 
 This Windows merge module is available with Visual Studio and contains the
 Visual C++ 2013 x86 runtime redistributables files.
-Copy the file in the *ovs-windows-installer* directory.
+Copy the file in the *Redist* directory.
 
 Open vSwitch binaries
 ---------------------
 
 Build the Open vSwitch project and copy:
 
-* *ovs-vswitchd.exe*, *ovsdb-server.exe* and *vswitch.ovsschema* in the
+* *ovs-vswitchd.exe*, *ovsdb-server.exe*, *OVS.psm1* and *vswitch.ovsschema* in the
   *Services* directory
 * *openvswitch.sys*, *openvswitch.cat* and *openvswitch.inf* in the *Driver*
   directory
 * CLI executables and depending DLLs in the *Binaries* directory 
-* *OVS.psm1* in the *ovs-windows-installer* directory
 * PDB symbols in the *Symbols* directory
 
 Note: the kernel driver needs to be signed.

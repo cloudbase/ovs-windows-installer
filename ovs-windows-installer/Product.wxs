@@ -13,7 +13,7 @@
              ConfigurableDirectory="INSTALLDIR" Display="expand">
       <ComponentGroupRef Id="BinariesComponentGroup" />
       <ComponentGroupRef Id="SymbolsComponentGroup" />
-      <ComponentRef Id="OpenvSwitchPaths" />
+      <ComponentRef Id="OpenvSwitchEnvVars" />
 
       <Feature Id="VC120Redist" Title="Visual C++ 12.0 Runtime" AllowAdvertise="no" Display="hidden" Level="1"
                Absent="disallow" InstallDefault="followParent" TypicalDefault="install">
@@ -121,7 +121,7 @@
 
   <Fragment>
     <DirectoryRef Id="TARGETDIR">
-      <Component Id="OpenvSwitchPaths" Guid="{4FCCA9D3-77BE-4283-815E-E3E63D4BF763}">
+      <Component Id="OpenvSwitchEnvVars" Guid="{4FCCA9D3-77BE-4283-815E-E3E63D4BF763}">
         <Environment Id="PATH" Name="PATH" Value="[BINARIESDIR]" Permanent="no" Part="last" Action="set" System="yes" />
         <Environment Id="OVS_RUNDIR" Name="OVS_RUNDIR" Value="[APPDATADIR]" Permanent="no" Part="all" Action="set" System="yes" />
         <Environment Id="OVS_PKGDATADIR" Name="OVS_PKGDATADIR" Value="[DRIVERDIR]" Permanent="no" Part="all" Action="set" System="yes" />
