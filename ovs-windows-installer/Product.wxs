@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product Id="{0DF60ED5-6C22-49A0-913E-77412D35C400}" Name="Open vSwitch for Hyper-V" Language="1033" Version="1.0.0.0"
-           Manufacturer="Cloudbase Solutions Srl" UpgradeCode="da802b12-433d-4742-a7ae-783aa0c48222">
+           Manufacturer="Open vSwitch" UpgradeCode="da802b12-433d-4742-a7ae-783aa0c48222">
     <Package InstallerVersion="405" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" Platform="x64" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -13,7 +13,7 @@
              ConfigurableDirectory="INSTALLDIR" Display="expand">
       <ComponentGroupRef Id="BinariesComponentGroup" />
       <ComponentGroupRef Id="SymbolsComponentGroup" />
-      <ComponentRef Id="OpenvSwitchCLIPath" />
+      <ComponentRef Id="OpenvSwitchPaths" />
 
       <Feature Id="VC120Redist" Title="Visual C++ 12.0 Runtime" AllowAdvertise="no" Display="hidden" Level="1"
                Absent="disallow" InstallDefault="followParent" TypicalDefault="install">
@@ -39,8 +39,6 @@
     <WixVariable Id="WixUIDialogBmp" Value="images\dlgbmp.bmp" />
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-    <Property Id="OVSDB_SERVER_PORT" Value="5559" />
-
     <InstallExecuteSequence>
       <Custom Action="InstallOpenVSwitchDriver_Prop" After="CostFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
       <Custom Action="InstallOpenVSwitchDriver" Before="ChangeOvsVSwitchdService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
@@ -55,6 +53,9 @@
       <Custom Action="RestartOvsdbServerService_Prop" After="CostFinalize"><![CDATA[Installed AND REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
       <Custom Action="ChangeOvsdbServerService" Before="ChangeOvsVSwitchdService"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
 
+      <Custom Action="InitializeDB_Prop" After="CostFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+      <Custom Action="InitializeDB" After="ChangeOvsdbServerService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
+
       <Custom Action="StartOvsVSwitchdService_Prop" After="CostFinalize"><![CDATA[NOT Installed AND (&OpenvSwitchDriver = 3)]]></Custom>
       <Custom Action="RestartOvsVSwitchdService_Prop" After="CostFinalize"><![CDATA[Installed AND REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
       <Custom Action="ChangeOvsVSwitchdService" Before="InstallFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
@@ -64,9 +65,7 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="CompanyFolder" Name="Cloudbase Solutions">
-          <Directory Id="INSTALLDIR" Name="Open vSwitch" />
-        </Directory>
+        <Directory Id="INSTALLDIR" Name="Open vSwitch" />
       </Directory>
       <Directory Id="CommonAppDataFolder">
         <Directory Id="APPDATADIR" Name="openvswitch">
@@ -116,14 +115,19 @@
     </DirectoryRef>
 
     <Component Id="OpenvSwitchPSModule" Directory="OVSPSMODULEDIR" Guid="{91819E0F-36F9-44C1-BCA3-973AE991E386}" Win64="yes">
-      <File Id="OVS.psm1" Source="OVS.psm1" Checksum="yes" KeyPath="yes" />
+      <File Id="OVS.psm1" Source="Services\OVS.psm1" Checksum="yes" KeyPath="yes" />
     </Component>
   </Fragment>
 
   <Fragment>
     <DirectoryRef Id="TARGETDIR">
-      <Component Id="OpenvSwitchCLIPath" Guid="{4FCCA9D3-77BE-4283-815E-E3E63D4BF763}">
+      <Component Id="OpenvSwitchPaths" Guid="{4FCCA9D3-77BE-4283-815E-E3E63D4BF763}">
         <Environment Id="PATH" Name="PATH" Value="[BINARIESDIR]" Permanent="no" Part="last" Action="set" System="yes" />
+        <Environment Id="OVS_RUNDIR" Name="OVS_RUNDIR" Value="[APPDATADIR]" Permanent="no" Part="all" Action="set" System="yes" />
+        <Environment Id="OVS_PKGDATADIR" Name="OVS_PKGDATADIR" Value="[DRIVERDIR]" Permanent="no" Part="all" Action="set" System="yes" />
+        <Environment Id="OVS_LOGDIR" Name="OVS_LOGDIR" Value="[LOGSDIR]" Permanent="no" Part="all" Action="set" System="yes" />
+        <Environment Id="OVS_SYSCONFDIR" Name="OVS_SYSCONFDIR" Value="[CONFDIR]" Permanent="no" Part="all" Action="set" System="yes" />
+        <Environment Id="OVS_BINDIR" Name="OVS_BINDIR" Value="[BINARIESDIR]" Permanent="no" Part="all" Action="set" System="yes" />
       </Component>
     </DirectoryRef>
   </Fragment>
@@ -137,9 +141,8 @@
 
     <Component Id="OvsdbServerService" Directory="BINARIESDIR" Guid="{280201D5-35E7-45D6-83B9-293F1A4F7F0E}">
       <File Id="ovsdbserver.exe" Source="Services\ovsdb-server.exe" Checksum="yes" />
-      <File Id="ovsdbserverservice.exe" Source="Services\ovsdb-server-service.exe" KeyPath="yes" Checksum="yes" />
       <ServiceInstall
-                Arguments='ovsdb-server "[BINARIESDIR]ovsdb-server.exe" --log-file="[LOGSDIR]ovsdb-server.log" --remote=punix:db.sock "[CONFDIR]conf.db"'
+                Arguments='--log-file="[LOGSDIR]ovsdb-server.log" --pidfile --service --service-monitor --unixctl="[APPDATADIR]ovsdb-server.ctl" --remote=punix:"[APPDATADIR]db.sock" "[CONFDIR]conf.db"'
                 Id="OvsdbServerServiceInstaller"
                 Type="ownProcess"
                 Vital="yes"
@@ -169,9 +172,8 @@
 
     <Component Id="OvsVSwitchdService" Directory="BINARIESDIR" Guid="{A2ED5531-B2D7-4CD3-8ADE-B525A8BEB957}">
       <File Id="ovsvswitchd.exe" Source="Services\ovs-vswitchd.exe" Checksum="yes" />
-      <File Id="ovsvswitchdservice.exe" Source="Services\ovs-vswitchd-service.exe" KeyPath="yes" Checksum="yes" />
       <ServiceInstall
-                Arguments='ovs-vswitchd "[BINARIESDIR]ovs-vswitchd.exe"'
+                Arguments='--log-file="[LOGSDIR]ovs-vswitchd.log" unix:"[APPDATADIR]db.sock" --unixctl="[APPDATADIR]ovs-vswitchd.ctl" --pidfile --service --service-monitor'
                 Id="OvsVSwitchdServiceServiceInstaller"
                 Type="ownProcess"
                 Vital="yes"
@@ -212,7 +214,7 @@
 
   <Fragment>
     <DirectoryRef Id="TARGETDIR">
-      <Merge Id="VC120Redist" SourceFile="Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0" />
+      <Merge Id="VC120Redist" SourceFile="Redist\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0" />
     </DirectoryRef>
   </Fragment>
 

@@ -10,6 +10,13 @@
               BinaryKey="OVSActions"
               JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
 
+    <CustomAction Id="InitializeDB_Prop" Property="InitializeDB"
+                  Value='"[BINARIESDIR]ovs-vsctl.exe" --no-wait --db=unix:"[APPDATADIR]db.sock" init|0|ovs-vsctl failed to initialize the database'
+                  Execute="immediate" />
+    <CustomAction Id="InitializeDB"
+              BinaryKey="OVSActions"
+              JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
+
     <CustomAction Id="InstallOpenVSwitchDriver_Prop" Property="InstallOpenVSwitchDriver"
                   Value='"[WindowsFolder]Sysnative\netcfg.exe" -l "[DRIVERDIR]\ovsext.inf" -c s -i ovsext|0|netcfg failed to install the Open vSwitch Hyper-V switch extension'
                   Execute="immediate" />
