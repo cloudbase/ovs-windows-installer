@@ -44,7 +44,10 @@
       <Custom Action="InstallOpenVSwitchDriver" Before="ChangeOvsVSwitchdService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
 
       <Custom Action="UninstallOpenVSwitchDriver_Prop" After="CostFinalize"><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
-      <Custom Action="UninstallOpenVSwitchDriver" Before="InstallFinalize" ><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
+      <Custom Action="UninstallOpenVSwitchDriver" Before="UninstallOpenVSwitchDriverWithPnputil" ><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
+
+      <Custom Action="UninstallOpenVSwitchDriverWithPnputil_Prop" After="CostFinalize"><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
+      <Custom Action="UninstallOpenVSwitchDriverWithPnputil" Before="InstallFinalize" ><![CDATA[(&OpenvSwitchDriver=2) AND (!OpenvSwitchDriver=3)]]></Custom>
 
       <Custom Action="GenerateConfDB_Prop" After="CostFinalize"><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
       <Custom Action="GenerateConfDB" Before="ChangeOvsdbServerService" ><![CDATA[REMOVE <> "ALL" AND (&OpenvSwitchDriver = 3)]]></Custom>
