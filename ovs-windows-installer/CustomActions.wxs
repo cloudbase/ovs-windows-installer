@@ -31,6 +31,13 @@
               BinaryKey="OVSActions"
               JScriptCall="runCommandAction" Execute="deferred" Return="check" Impersonate="no" />
 
+    <CustomAction Id="UninstallOpenVSwitchDriverWithPnputil_Prop" Property="UninstallOpenVSwitchDriverWithPnputil"
+                  Value='ovsext|0|pnputil failed to uninstall the Open vSwitch Hyper-V driver'
+                  Execute="immediate" />
+    <CustomAction Id="UninstallOpenVSwitchDriverWithPnputil"
+              BinaryKey="OVSActions"
+              JScriptCall="removeDriverWithPnputil" Execute="deferred" Return="check" Impersonate="no" />
+
     <CustomAction Id="RestartOvsdbServerService_Prop" Return="check" Property="ChangeOvsdbServerService"
                   Value="ovsdb-server||Restart" />
     <CustomAction Id="StartOvsdbServerService_Prop" Return="check" Property="ChangeOvsdbServerService"
